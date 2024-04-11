@@ -1,0 +1,33 @@
+From 7cc9fd1870e5264abd885ed2c419034945121d0f Mon Sep 17 00:00:00 2001
+From: Petr Mensik <pemensik@redhat.com>
+Date: Mon, 19 Feb 2024 22:13:52 +0100
+Subject: [PATCH] Define variants to empty values
+
+DNSSEC_VARIANT and NAMED_VARIANT are special Red Hat modifications to
+allow testing or alternative rebuilds, with support for pkcs11 or sdb.
+But undefined value breaks some tests, so define them to empty values.
+That means normal build variant.
+
+Required to pass upstream test suite cds test correctly.
+---
+ bin/tests/system/conf.sh.in | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/bin/tests/system/conf.sh.in b/bin/tests/system/conf.sh.in
+index 7b2b309..c2d6526 100644
+--- a/bin/tests/system/conf.sh.in
++++ b/bin/tests/system/conf.sh.in
+@@ -24,6 +24,10 @@ TMPDIR=${TMPDIR:-/tmp}
+ # This is not the windows build.
+ CYGWIN=""
+ 
++# RH specific, allow variants testing
++: ${DNSSEC_VARIANT:=}
++: ${NAMED_VARIANT:=}
++
+ # Load common values shared between windows and unix/linux.
+ . $TOP/bin/tests/system/conf.sh.common
+ 
+-- 
+2.43.2
+

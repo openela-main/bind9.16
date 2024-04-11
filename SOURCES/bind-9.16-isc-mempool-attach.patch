@@ -1,0 +1,40 @@
+From d249889a9c18df7792ca3cd8d97897e4fb5824b5 Mon Sep 17 00:00:00 2001
+From: Aram Sargsyan <aram@isc.org>
+Date: Wed, 31 Aug 2022 12:30:38 +0000
+Subject: [PATCH] Add mctx attach/detach when creating/destroying a memory pool
+
+This should make sure that the memory context is not destroyed
+before the memory pool, which is using the context.
+
+(cherry picked from commit e97c3eea954e055634b72c21325d2611e960ee94)
+---
+ lib/isc/mem.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/lib/isc/mem.c b/lib/isc/mem.c
+index f84d300..33ece7a 100644
+--- a/lib/isc/mem.c
++++ b/lib/isc/mem.c
+@@ -1656,7 +1656,8 @@ isc_mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
+ 	mpctx->common.impmagic = MEMPOOL_MAGIC;
+ 	mpctx->common.magic = ISCAPI_MPOOL_MAGIC;
+ 	mpctx->lock = NULL;
+-	mpctx->mctx = mctx;
++	mpctx->mctx = NULL;
++	isc_mem_attach((isc_mem_t *)mctx, (isc_mem_t **)&mpctx->mctx);
+ 	/*
+ 	 * Mempools are stored as a linked list of element.
+ 	 */
+@@ -1765,7 +1766,8 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
+ 	mpctx->common.impmagic = 0;
+ 	mpctx->common.magic = 0;
+ 
+-	isc_mem_put((isc_mem_t *)mpctx->mctx, mpctx, sizeof(isc__mempool_t));
++	isc_mem_putanddetach((isc_mem_t **)&mpctx->mctx, mpctx,
++			     sizeof(isc__mempool_t));
+ 
+ 	if (lock != NULL) {
+ 		UNLOCK(lock);
+-- 
+2.43.2
+

@@ -57,7 +57,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind9.16
 License:  MPLv2.0
 Version:  9.16.23
-Release:  0.14%{?dist}.2
+Release:  0.16%{?dist}.2
 Epoch:    32
 Url:      https://www.isc.org/downloads/bind/
 #
@@ -129,6 +129,23 @@ Patch187: bind-9.16-CVE-2022-3924.patch
 # https://gitlab.isc.org/isc-projects/bind9/commit/f1d9e9ee3859976f403914d20ad2a10855343702
 Patch188: bind-9.16-CVE-2023-2828.patch
 Patch189: bind-9.16-CVE-2023-3341.patch
+Patch194: bind-9.16-CVE-2023-4408.patch
+Patch195: bind-9.16-CVE-2023-5517.patch
+Patch196: bind-9.16-CVE-2023-5679.patch
+Patch197: bind-9.16-CVE-2023-6516.patch
+Patch198: bind-9.16-CVE-2023-50387.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/f493a8394102b0aeb101d5dc2f963004c8741175
+Patch199: bind-9.16-CVE-2023-4408-test1.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/b9c10a194da3358204f5ba7d91e55332db435614
+Patch200: bind-9.16-CVE-2023-4408-test2.patch
+# Downstream only change, fixes patch 171
+Patch201: bind-9.16-system-test-cds.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/32779aba8a0a5f852c611f44ecbeab5aab633e34
+Patch202: bind-9.16-isc-mempool-attach.patch
+# Downstream only change, complements patch 198
+Patch203: bind-9.16-isc_hp-CVE-2023-50387.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/1237d73cd1120b146ee699bbae7b2fe837cf2f98
+Patch204: bind-9.16-CVE-2023-6516-test.patch
 
 %{?systemd_ordering}
 Requires:       coreutils
@@ -170,6 +187,7 @@ BuildRequires:  softhsm
 %if %{with SYSTEMTEST}
 # bin/tests/system dependencies
 BuildRequires:  perl(Net::DNS) perl(Net::DNS::Nameserver) perl(Time::HiRes) perl(Getopt::Long)
+BuildRequires:  python-dns
 # manual configuration requires this tool
 BuildRequires:  iproute
 %endif
@@ -442,6 +460,17 @@ in HTML and PDF format.
 %patch187 -p1 -b .CVE-2022-3924
 %patch188 -p1 -b .CVE-2023-2828
 %patch189 -p1 -b .CVE-2023-3341
+%patch194 -p1 -b .CVE-2023-4408
+%patch195 -p1 -b .CVE-2023-5517
+%patch196 -p1 -b .CVE-2023-5679
+%patch197 -p1 -b .CVE-2023-6516
+%patch198 -p1 -b .CVE-2023-50387
+%patch199 -p1
+%patch200 -p1
+%patch201 -p1 -b .test-variant-def
+%patch202 -p1 -b .mempool-attach
+%patch203 -p1 -b .isc_hp-CVE-2023-50387
+%patch204 -p1 -b .CVE-2023-6516-test
 
 %if %{with PKCS11}
 %patch135 -p1 -b .config-pkcs11
@@ -542,6 +571,11 @@ export LIBDIR_SUFFIX
   --enable-fixed-rrset \
   --enable-full-report \
 ;
+
+%if 0%{?bind_skip_parsetab}
+  sed -e 's/^TARGETS =/& #/' -i bin/python/isc/Makefile
+%endif
+
 %if %{with DNSTAP}
   pushd lib
   SRCLIB="../../../lib"
@@ -1161,10 +1195,25 @@ fi;
 %endif
 
 %changelog
-* Wed Sep 20 2023 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.14.2
+* Mon Mar 25 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.16.2
+- Prevent crashing at masterformat system test (CVE-2023-6516)
+
+* Mon Feb 12 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.16.1
+- Prevent increased CPU load on large DNS messages (CVE-2023-4408)
+- Prevent assertion failure when nxdomain-redirect is used with
+ RFC 1918 reverse zones (CVE-2023-5517)
+- Prevent assertion failure if DNS64 and serve-stale is used (CVE-2023-5679)
+- Specific recursive query patterns may lead to an out-of-memory
+  condition (CVE-2023-6516)
+- Prevent increased CPU consumption in DNSSEC validator (CVE-2023-50387
+  CVE-2023-50868)
+- Import tests for large DNS messages fix
+- Add downstream change complementing CVE-2023-50387
+
+* Wed Sep 20 2023 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.16
 - Limit the amount of recursion possible in control channel (CVE-2023-3341)
 
-* Tue Jun 20 2023 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.14.1
+* Tue Jun 20 2023 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.15
 - Strengten cache cleaning to prevent overflowing configured limit
   (CVE-2023-2828)
 
