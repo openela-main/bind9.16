@@ -50,14 +50,14 @@
 %global upname bind
 %define upname_compat() \
 %if "%{name}" != "%{upname}" \
-Conflicts: %1 \
+Conflicts: %* \
 %endif
 
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind9.16
 License:  MPLv2.0
 Version:  9.16.23
-Release:  0.16%{?dist}.2
+Release:  0.19%{?dist}
 Epoch:    32
 Url:      https://www.isc.org/downloads/bind/
 #
@@ -308,8 +308,8 @@ Requires: %{name}-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Recommends: %{name}-utils
 Requires: python3-%{name} = %{epoch}:%{version}-%{release}
 Provides: %{name}-dnssec-doc = %{epoch}:%{version}-%{release}
-%upname_compat %{upname}-dnssec-utils
-%upname_compat %{upname}-pkcs11-utils
+%upname_compat %{upname}-dnssec-utils %{upname}-pkcs11-utils
+%upname_compat %{upname}-utils < 9.16
 
 %description dnssec-utils
 Bind-dnssec-utils contains a collection of utilities for editing
@@ -341,8 +341,7 @@ Requires:  fstrm-devel%{?_isa} protobuf-c-devel%{?_isa}
 %if %{with GEOIP2}
 Requires:  libmaxminddb-devel%{?_isa}
 %endif
-%upname_compat %{upname}-devel
-%upname_compat %{upname}-lite-devel
+%upname_compat %{upname}-devel %{upname}-lite-devel
 
 %description devel
 The %{name}-devel package contains full version of the header files and libraries
@@ -355,6 +354,7 @@ Prefix:         %{chroot_prefix}
 # grep is required due to setup-named-chroot.sh script
 Requires:       grep
 Requires:       %{name}%{?_isa} = %{epoch}:%{version}-%{release}
+%upname_compat %{upname}-chroot %{upname}-sdb-chroot
 
 %description chroot
 This package contains a tree of files which can be used as a
@@ -1195,10 +1195,13 @@ fi;
 %endif
 
 %changelog
-* Mon Mar 25 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.16.2
+* Wed May 15 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.19
+- Add few more explicit conflicts with bind subpackages (RHEL-2208)
+
+* Mon Mar 25 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.18
 - Prevent crashing at masterformat system test (CVE-2023-6516)
 
-* Mon Feb 12 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.16.1
+* Mon Feb 12 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.17
 - Prevent increased CPU load on large DNS messages (CVE-2023-4408)
 - Prevent assertion failure when nxdomain-redirect is used with
  RFC 1918 reverse zones (CVE-2023-5517)
