@@ -33,6 +33,9 @@
                                          %{_libdir}/bind %{_libdir}/named %{_datadir}/GeoIP /proc/sys/net/ipv4
 
 %global        selinuxbooleans   named_write_master_zones=1
+
+# BIND 9.16 does not work with fortify 3 level, make builds work on Fedora
+%global _fortify_level 2
 ## The order of libs is important. See lib/Makefile.in for details
 %define bind_export_libs isc dns isccfg irs
 %{!?_export_dir:%global _export_dir /bind9-export/}
@@ -57,7 +60,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind9.16
 License:  MPLv2.0
 Version:  9.16.23
-Release:  0.19%{?dist}
+Release:  0.22%{?dist}
 Epoch:    32
 Url:      https://www.isc.org/downloads/bind/
 #
@@ -146,6 +149,24 @@ Patch202: bind-9.16-isc-mempool-attach.patch
 Patch203: bind-9.16-isc_hp-CVE-2023-50387.patch
 # https://gitlab.isc.org/isc-projects/bind9/commit/1237d73cd1120b146ee699bbae7b2fe837cf2f98
 Patch204: bind-9.16-CVE-2023-6516-test.patch
+Patch205: bind-9.16-CVE-2024-1975.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/26c9da5f2857b72077c17e06ac79f068c63782cc
+# https://gitlab.isc.org/isc-projects/bind9/commit/c5ebda6deb0997dc520b26fa0639891459de5cb6
+# https://gitlab.isc.org/isc-projects/bind9/commit/d56d2a32b861e81c2aaaabd309c4c58b629ede32
+# https://gitlab.isc.org/isc-projects/bind9/commit/dfcadc2085c8844b5836aff2b5ea51fb60c34868
+# https://gitlab.isc.org/isc-projects/bind9/commit/fdabf4b9570a60688f9f7d1e88d885f7a3718bca
+# https://gitlab.isc.org/isc-projects/bind9/commit/8ef414a7f38a04cfc11df44adaedaf3126fa3878
+Patch206: bind-9.16-CVE-2024-1737.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/a61be8eef0ee0ca8fd8036ccb61c6f9b728158ce
+Patch207: bind-9.18-CVE-2024-4076.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/2f2f0a900b9baf5e6eba02a82e2fe9e967dc1760
+Patch209: bind-9.16-CVE-2024-1737-records.patch
+Patch210: bind-9.16-CVE-2024-1737-records-test.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/3f1826f2f78792e95f56da7af3a35c46b4d6d9af
+Patch211: bind-9.16-CVE-2024-1737-types.patch
+Patch212: bind-9.16-CVE-2024-1737-types-test.patch
+# backport issue fix
+Patch213: bind-9.16-CVE-2024-1737-records-test2.patch
 
 %{?systemd_ordering}
 Requires:       coreutils
@@ -471,6 +492,14 @@ in HTML and PDF format.
 %patch202 -p1 -b .mempool-attach
 %patch203 -p1 -b .isc_hp-CVE-2023-50387
 %patch204 -p1 -b .CVE-2023-6516-test
+%patch205 -p1 -b .CVE-2024-1975
+%patch206 -p1 -b .CVE-2024-1737
+%patch207 -p1 -b .CVE-2024-4076
+%patch209 -p1 -b .CVE-2024-1737-records
+%patch210 -p1 -b .CVE-2024-1737-records-test
+%patch211 -p1 -b .CVE-2024-1737-types
+%patch212 -p1 -b .CVE-2024-1737-types-test
+%patch213 -p1 -b .CVE-2024-1737-records-test2
 
 %if %{with PKCS11}
 %patch135 -p1 -b .config-pkcs11
@@ -1195,6 +1224,19 @@ fi;
 %endif
 
 %changelog
+* Fri Aug 09 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22
+- Minor fix of reclimit test backport (CVE-2024-1737)
+
+* Wed Aug 07 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.21
+- Backport addition of max-records-per-type and max-records-per-type options
+  (CVE-2024-1737)
+
+* Thu Jul 18 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.20
+- Resolve CVE-2024-1975
+- Resolve CVE-2024-1737
+- Resolve CVE-2024-4076
+- Add ability to change runtime limits for max types and records per name
+
 * Wed May 15 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.19
 - Add few more explicit conflicts with bind subpackages (RHEL-2208)
 
