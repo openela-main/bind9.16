@@ -6,6 +6,8 @@
 # bcond_without is built by default, unless --without X is passed
 # bcond_with is built only when --with X is passed to build
 %bcond_with    SYSTEMTEST
+# enable RSA1 during SYSTEMTEST
+%bcond_with    CRYPTO_POLICY_RSA1
 %bcond_without GSSTSIG
 # it is not possible to build the package without PKCS11 sub-package
 # due to extensive changes to Makefiles
@@ -60,7 +62,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind9.16
 License:  MPLv2.0
 Version:  9.16.23
-Release:  0.22%{?dist}
+Release:  0.22%{?dist}.2
 Epoch:    32
 Url:      https://www.isc.org/downloads/bind/
 #
@@ -167,6 +169,9 @@ Patch211: bind-9.16-CVE-2024-1737-types.patch
 Patch212: bind-9.16-CVE-2024-1737-types-test.patch
 # backport issue fix
 Patch213: bind-9.16-CVE-2024-1737-records-test2.patch
+# https://gitlab.isc.org/isc-projects/bind9/-/commit/c6e6a7af8ac6b575dd3657b0f5cf4248d734c2b0
+Patch215: bind-9.18-CVE-2024-11187-pre-test.patch
+Patch216: bind-9.18-CVE-2024-11187.patch
 
 %{?systemd_ordering}
 Requires:       coreutils
@@ -208,6 +213,7 @@ BuildRequires:  softhsm
 %if %{with SYSTEMTEST}
 # bin/tests/system dependencies
 BuildRequires:  perl(Net::DNS) perl(Net::DNS::Nameserver) perl(Time::HiRes) perl(Getopt::Long)
+BuildRequires:  perl(English)
 BuildRequires:  python-dns
 # manual configuration requires this tool
 BuildRequires:  iproute
@@ -500,6 +506,8 @@ in HTML and PDF format.
 %patch211 -p1 -b .CVE-2024-1737-types
 %patch212 -p1 -b .CVE-2024-1737-types-test
 %patch213 -p1 -b .CVE-2024-1737-records-test2
+%patch215 -p1 -b .CVE-2024-11187-pre-test
+%patch216 -p1 -b .CVE-2024-11187
 
 %if %{with PKCS11}
 %patch135 -p1 -b .config-pkcs11
@@ -519,6 +527,10 @@ done
 %endif
 
 sed -e 's|"$TOP/config.guess"|"$TOP_SRCDIR/config.guess"|' -i bin/tests/system/ifconfig.sh
+# allow running as root from mock or test machines
+sed -e 's, "enable-developer",& \&\& systemctl is-system-running \&>/dev/null \&\& ! [ -e /mnt/tests ],' \
+    -i bin/tests/system/run.sh
+
 :;
 
 
@@ -693,15 +705,29 @@ else
   sh bin/tests/system/ifconfig.sh up
   perl bin/tests/system/testsock.pl && CONFIGURED=build
 fi
+
 if [ -n "$CONFIGURED" ]
 then
   set -e
+  %if %{with CRYPTO_POLICY_RSA1}
+    # Override crypto-policy to allow RSASHA1 key operations
+    OPENSSL_CONF="$(mktemp openssl-XXXXXX.cnf)"
+    cat > "$OPENSSL_CONF" << 'EOF'
+.include = /etc/ssl/openssl.cnf
+[evp_properties]
+rh-allow-sha1-signatures = yes
+EOF
+    export OPENSSL_CONF
+  %endif
   pushd build/bin/tests
   chown -R ${USER} . # Can be unknown user
-  %make_build test 2>&1 | tee test.log
+  %make_build test
   e=$?
   popd
   [ "$CONFIGURED" = build ] && sh bin/tests/system/ifconfig.sh down
+  %if %{with CRYPTO_POLICY_RSA1}
+    export -b OPENSSL_CONF
+  %endif
   if [ "$e" -ne 0 ]; then
     echo "ERROR: this build of BIND failed 'make test'. Aborting."
     exit $e;
@@ -1224,6 +1250,14 @@ fi;
 %endif
 
 %changelog
+* Tue Feb 18 2025 Tomas Korbar <tkorbar@redhat.com> - 32:9.16.23-0.22.2
+- Fix application of patch for CVE-2024-11187
+- Resolves: RHEL-77103
+
+* Wed Feb 05 2025 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22.1
+- Limit additional section records CPU processing (CVE-2024-11187)
+- Fix test backport changes
+
 * Fri Aug 09 2024 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22
 - Minor fix of reclimit test backport (CVE-2024-1737)
 
