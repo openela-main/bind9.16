@@ -62,7 +62,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind9.16
 License:  MPLv2.0
 Version:  9.16.23
-Release:  0.22%{?dist}.2
+Release:  0.22%{?dist}.4
 Epoch:    32
 Url:      https://www.isc.org/downloads/bind/
 #
@@ -172,6 +172,14 @@ Patch213: bind-9.16-CVE-2024-1737-records-test2.patch
 # https://gitlab.isc.org/isc-projects/bind9/-/commit/c6e6a7af8ac6b575dd3657b0f5cf4248d734c2b0
 Patch215: bind-9.18-CVE-2024-11187-pre-test.patch
 Patch216: bind-9.18-CVE-2024-11187.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/8924adca613ca9daea63786563cce6fdbd742c56
+Patch217: bind-9.16-update-b.root-servers.net.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/d9b5ef342916462bfd63391831d96afc80c12df3
+Patch224: bind-9.16-CVE-2025-40780.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/2f0f44d493c382a7f0a3adfe7c4976b18a3d480b
+# https://gitlab.isc.org/isc-projects/bind9/commit/50479358efdf432d690415131b74b5df158a9d69
+# https://gitlab.isc.org/isc-projects/bind9/commit/33a7db1fe964e55b76b4ac003ecc56cc67028bd9
+Patch225: bind-9.16-CVE-2025-40778.patch
 
 %{?systemd_ordering}
 Requires:       coreutils
@@ -508,6 +516,9 @@ in HTML and PDF format.
 %patch213 -p1 -b .CVE-2024-1737-records-test2
 %patch215 -p1 -b .CVE-2024-11187-pre-test
 %patch216 -p1 -b .CVE-2024-11187
+%patch217 -p1 -b .b.root-servers.net
+%patch224 -p1 -b .CVE-2025-40780
+%patch225 -p1 -b .CVE-2025-40778
 
 %if %{with PKCS11}
 %patch135 -p1 -b .config-pkcs11
@@ -1250,6 +1261,14 @@ fi;
 %endif
 
 %changelog
+* Wed Oct 29 2025 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22.4
+- Prevent cache poisoning due to weak PRNG (CVE-2025-40780)
+- Address various spoofing attacks (CVE-2025-40778)
+- Replace downstream fixes with upstream changes
+
+* Wed Aug 13 2025 Petr Menšík <pemensik@redhat.com>
+- Update addresses of b.root-servers.net (RHEL-18449) - 32:9.16.23-0.22.3
+
 * Tue Feb 18 2025 Tomas Korbar <tkorbar@redhat.com> - 32:9.16.23-0.22.2
 - Fix application of patch for CVE-2024-11187
 - Resolves: RHEL-77103

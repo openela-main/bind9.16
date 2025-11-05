@@ -1,0 +1,31 @@
+From 639636db2d19ae8845a8104ab524b9024c8be7a4 Mon Sep 17 00:00:00 2001
+From: Mark Andrews <marka@isc.org>
+Date: Thu, 12 Oct 2023 10:19:38 +1100
+Subject: [PATCH] Update b.root-servers.net IP addresses
+
+This covers both root hints and the default primaries for the root
+zone mirror.  The official change date is Nov 27, 2023.
+
+(cherry picked from commit 2ca2f7e9852a3d6e93f065c01ea4679f723688f7)
+---
+ lib/dns/rootns.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/dns/rootns.c b/lib/dns/rootns.c
+index 885c2fb..445e9d0 100644
+--- a/lib/dns/rootns.c
++++ b/lib/dns/rootns.c
+@@ -52,8 +52,8 @@ static char root_ns[] =
+ 	".                       518400  IN      NS      M.ROOT-SERVERS.NET.\n"
+ 	"A.ROOT-SERVERS.NET.     3600000 IN      A       198.41.0.4\n"
+ 	"A.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:503:BA3E::2:30\n"
+-	"B.ROOT-SERVERS.NET.     3600000 IN      A       199.9.14.201\n"
+-	"B.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:500:200::b\n"
++        "B.ROOT-SERVERS.NET.     3600000 IN      A       170.247.170.2\n"
++        "B.ROOT-SERVERS.NET.     3600000 IN      AAAA    2801:1b8:10::b\n"
+ 	"C.ROOT-SERVERS.NET.     3600000 IN      A       192.33.4.12\n"
+ 	"C.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:500:2::c\n"
+ 	"D.ROOT-SERVERS.NET.     3600000 IN      A       199.7.91.13\n"
+-- 
+2.50.1
+
