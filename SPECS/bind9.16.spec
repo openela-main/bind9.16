@@ -62,7 +62,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind9.16
 License:  MPLv2.0
 Version:  9.16.23
-Release:  0.22%{?dist}.4
+Release:  0.22%{?dist}.5
 Epoch:    32
 Url:      https://www.isc.org/downloads/bind/
 #
@@ -180,6 +180,8 @@ Patch224: bind-9.16-CVE-2025-40780.patch
 # https://gitlab.isc.org/isc-projects/bind9/commit/50479358efdf432d690415131b74b5df158a9d69
 # https://gitlab.isc.org/isc-projects/bind9/commit/33a7db1fe964e55b76b4ac003ecc56cc67028bd9
 Patch225: bind-9.16-CVE-2025-40778.patch
+# https://gitlab.isc.org/isc-projects/bind9/-/commit/a5e8d2354385d4f42a58113b16960d85ec306b09
+Patch226: bind-9.16-CVE-2026-1519.patch
 
 %{?systemd_ordering}
 Requires:       coreutils
@@ -519,6 +521,7 @@ in HTML and PDF format.
 %patch217 -p1 -b .b.root-servers.net
 %patch224 -p1 -b .CVE-2025-40780
 %patch225 -p1 -b .CVE-2025-40778
+%patch226 -p1 -b .CVE-2026-1519
 
 %if %{with PKCS11}
 %patch135 -p1 -b .config-pkcs11
@@ -1261,6 +1264,10 @@ fi;
 %endif
 
 %changelog
+* Fri Mar 27 2026 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22.5
+- Prevent Denial of Service via maliciously crafted DNSSEC-validated zone
+  (CVE-2026-1519)
+
 * Wed Oct 29 2025 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22.4
 - Prevent cache poisoning due to weak PRNG (CVE-2025-40780)
 - Address various spoofing attacks (CVE-2025-40778)
