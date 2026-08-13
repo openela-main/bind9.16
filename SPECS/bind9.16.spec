@@ -62,7 +62,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind9.16
 License:  MPLv2.0
 Version:  9.16.23
-Release:  0.22%{?dist}.6
+Release:  0.22%{?dist}.12
 Epoch:    32
 Url:      https://www.isc.org/downloads/bind/
 #
@@ -187,6 +187,24 @@ Patch230: bind-9.16-CVE-2026-3039.patch
 # https://gitlab.isc.org/isc-projects/bind9/-/commit/ec2c98181115bd5f6c7087fcc74d816490d4312e
 # https://gitlab.isc.org/isc-projects/bind9/-/commit/e5abd37cb2330af1fbfeba68eb32f2873390226d
 Patch231: bind-9.16-CVE-2026-5946.patch
+# https://github.com/isc-projects/bind9/commit/1b90fbb4f9d3d923516ff7841171269b993cfd6f
+Patch233: bind-9.16-CVE-2026-13204.patch
+# https://github.com/isc-projects/bind9/commit/ee2ac186bc5f75f7f3f7049f1a21e9a2014cee59
+Patch234: bind-9.16-CVE-2026-11331.patch
+# https://github.com/isc-projects/bind9/commit/15089066b15f826d7487c3d160b5872820f84b83
+# https://github.com/isc-projects/bind9/commit/1a4986e2533f87e80eb21da3f06708d335aff1e2
+Patch235: bind-9.16-CVE-2026-11721.patch
+# https://github.com/isc-projects/bind9/commit/c57695da31a338092528283fde4f8ed9048b2087
+Patch236: bind-9.16-CVE-2026-11622.patch
+# https://github.com/isc-projects/bind9/commit/af84538a2ce6722b89b8ef7f2a233a5c10d0207d
+Patch237: bind-9.16-CVE-2026-13321.patch
+# https://github.com/isc-projects/bind9/commit/238ec379e9bed56383ba2333e711e554b139ac13
+Patch238: bind-9.16-CVE-2026-10723.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/ebf391bdb8ea196dab43d0a1e1f639458cb15126
+Patch239: bind-9.16-CVE-2026-11721-test.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/e1c83d27984f10ff929bc54d6ed84b5152be96d5
+# https://gitlab.isc.org/isc-projects/bind9/commit/25b572a6d00f717d7992f154f28b43d2b2ffd0b3
+Patch240: bind-9.16-CVE-2026-11331-test.patch
 
 %{?systemd_ordering}
 Requires:       coreutils
@@ -529,6 +547,14 @@ in HTML and PDF format.
 %patch226 -p1 -b .CVE-2026-1519
 %patch230 -p1 -b .CVE-2026-3039
 %patch231 -p1 -b .CVE-2026-5946
+%patch233 -p1 -b .CVE-2026-13204
+%patch234 -p1 -b .CVE-2026-11331
+%patch235 -p1 -b .CVE-2026-11721
+%patch236 -p1 -b .CVE-2026-11622
+%patch237 -p1 -b .CVE-2026-13321
+%patch238 -p1 -b .CVE-2026-10723
+%patch239 -p1 -b .CVE-2026-11721-test
+%patch240 -p1 -b .CVE-2026-11331-test
 
 %if %{with PKCS11}
 %patch135 -p1 -b .config-pkcs11
@@ -1271,6 +1297,32 @@ fi;
 %endif
 
 %changelog
+* Thu Jul 23 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.12
+- Fix NSEC3 signer validation (CVE-2026-10723)
+- Resolves: RHEL-213499
+
+* Thu Jul 23 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.11
+- Reject out-of-zone NSEC next owner names (CVE-2026-13321)
+- Resolves: RHEL-213313
+
+* Thu Jul 23 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.10
+- Fix CVE-2026-11622: reference-counted DNS cache slab headers
+- Resolves: RHEL-213396
+
+* Thu Jul 23 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.9
+- Fix CVE-2026-11721: RRSIG labels validation and out-of-zone signing
+- Add new unit test
+- Resolves: RHEL-213406
+
+* Thu Jul 23 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.8
+- Fix RPZ name-too-long wildcard expansion (CVE-2026-11331)
+- Add upstream rpz system test
+- Resolves: RHEL-213478
+
+* Thu Jul 23 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.7
+- Fix CVE-2026-13204: ensure NSEC/NSEC3 has matching RRSIG
+- Resolves: RHEL-213478
+
 * Mon May 25 2026 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22.6
 - Fix GSS-API resource leak (CVE-2026-3039)
 - Invalid handling of CLASS != IN (CVE-2026-5946)
