@@ -17,7 +17,7 @@
 # New MaxMind GeoLite support
 %bcond_without GEOIP2
 # kyua no longer in buildroot in RHEL9
-%bcond_with    UNITTEST
+%bcond_without UNITTEST
 %bcond_without DNSTAP
 %bcond_without LMDB
 %bcond_without DOC
@@ -62,7 +62,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind9.16
 License:  MPLv2.0
 Version:  9.16.23
-Release:  0.22%{?dist}.13
+Release:  0.22%{?dist}.16
 Epoch:    32
 Url:      https://www.isc.org/downloads/bind/
 #
@@ -205,6 +205,17 @@ Patch239: bind-9.16-CVE-2026-11721-test.patch
 # https://gitlab.isc.org/isc-projects/bind9/commit/e1c83d27984f10ff929bc54d6ed84b5152be96d5
 # https://gitlab.isc.org/isc-projects/bind9/commit/25b572a6d00f717d7992f154f28b43d2b2ffd0b3
 Patch240: bind-9.16-CVE-2026-11331-test.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/1c6cfd7c6860dbe80114b3df148b69f7f8e75f59
+Patch241: bind-9.16-CVE-2026-19666.patch
+Patch242: bind-9.16-CVE-2026-19666-test.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/fad1c3dc0730f0458fed22b732861f612de0f776
+Patch243: bind-9.16-CVE-2026-80274.patch
+Patch244: bind-9.16-CVE-2026-80274-test.patch
+# https://gitlab.isc.org/isc-projects/bind9/commit/9a5493e6c9daef33577391ff60bdaf6ae5409f34
+Patch245: bind-9.16-CVE-2026-19667.patch
+Patch246: bind-9.16-CVE-2026-19667-test.patch
+# https://gitlab.isc.org/isc-projects/bind9/-/commit/742dc803a85e7a7b9949010db550351275831aa6
+Patch247: bind-9.16-no-header-prev-in-expire-lru-headers.patch
 
 %{?systemd_ordering}
 Requires:       coreutils
@@ -555,6 +566,13 @@ in HTML and PDF format.
 %patch238 -p1 -b .CVE-2026-10723
 %patch239 -p1 -b .CVE-2026-11721-test
 %patch240 -p1 -b .CVE-2026-11331-test
+%patch -P 241 -p1 -b bind-9.16-CVE-2026-19666
+%patch -P 242 -p1 -b bind-9.16-CVE-2026-19666-test
+%patch -P 243 -p1 -b .CVE-2026-80274
+%patch -P 244 -p1 -b .CVE-2026-80274-test
+%patch -P 245 -p1 -b .CVE-2026-19667
+%patch -P 246 -p1 -b .CVE-2026-19667-test
+%patch -P 247 -p1 -b .no-header-prev
 
 %if %{with PKCS11}
 %patch135 -p1 -b .config-pkcs11
@@ -727,12 +745,18 @@ export TSAN_OPTIONS="log_exe_name=true log_path=ThreadSanitizer exitcode=0"
 %endif
 
 %if %{with UNITTEST}
+  # Fixes dst_test
+  ln -rs {.,build}/lib/dns/tests/comparekeys
   pushd build
   CPUS=$(lscpu -p=cpu,core | grep -v '^#' | wc -l)
   if [ "$CPUS" -gt 16 ]; then
     ORIGFILES=$(ulimit -n)
     ulimit -n 4096 || : # Requires on some machines with many cores
+    # Limit internally detected CPUs in unit tests
+    export ISC_TASK_WORKERS=16
   fi
+  # Skip broken netmgr test
+  sed -e '/netmgr_test/ d' -i lib/isc/tests/Kyuafile
   make unit
   e=$?
   if [ "$e" -ne 0 ]; then
@@ -1300,6 +1324,17 @@ fi;
 %endif
 
 %changelog
+* Tue Oct 06 2026 Fedor Vorobev <fvorobev@redhat.com> - 32:9.16.23-0.22-16
+- Backport 'Do not use header_prev in expire_lru_headers' from upstream.
+
+* Thu Oct 01 2026 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22-15
+- Reenable unit tests during build
+
+* Thu Sep 24 2026 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22.14
+- Prevent assertion failure in dns64 mode with break-dnssec yes (CVE-2026-19666)
+- Prevent crash on wildcard responses containing both NSEC and NSEC3 proofs (CVE-2026-80274)
+- Reject oversized negative cached records early (CVE-2026-19667)
+
 * Wed Sep 02 2026 Petr Menšík <pemensik@redhat.com> - 32:9.16.23-0.22.13
 - Add new root key 38696 into package files (RHEL-131888)
 - Update built-in anchors in delv and named

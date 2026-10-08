@@ -1,0 +1,45 @@
+From 742dc803a85e7a7b9949010db550351275831aa6 Mon Sep 17 00:00:00 2001
+From: Mark Andrews <marka@isc.org>
+Date: Fri, 23 Feb 2024 10:12:47 +1100
+Subject: [PATCH] Do not use header_prev in expire_lru_headers
+
+dns__cacherbt_expireheader can unlink / free header_prev underneath
+it.  Use ISC_LIST_TAIL after calling dns__cacherbt_expireheader
+instead to get the next pointer to be processed.
+
+(cherry picked from commit 7ce2e86024f022decb2678963538515ca39ab4ab)
+---
+ lib/dns/rbtdb.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/lib/dns/rbtdb.c b/lib/dns/rbtdb.c
+index 723d169532d..00ec78b8dee 100644
+--- a/lib/dns/rbtdb.c
++++ b/lib/dns/rbtdb.c
+@@ -10618,19 +10618,19 @@ update_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, isc_stdtime_t now) {
+ static size_t
+ expire_lru_headers(dns_rbtdb_t *rbtdb, unsigned int locknum, size_t purgesize,
+ 		   bool tree_locked) {
+-	rdatasetheader_t *header, *header_prev;
++	rdatasetheader_t *header;
+ 	size_t purged = 0;
+ 
+ 	for (header = ISC_LIST_TAIL(rbtdb->rdatasets[locknum]);
+-	     header != NULL && purged <= purgesize; header = header_prev)
++	     header != NULL && purged <= purgesize;
++	     header = ISC_LIST_TAIL(rbtdb->rdatasets[locknum]))
+ 	{
+-		header_prev = ISC_LIST_PREV(header, link);
+ 		/*
+ 		 * Unlink the entry at this point to avoid checking it
+ 		 * again even if it's currently used someone else and
+ 		 * cannot be purged at this moment.  This entry won't be
+ 		 * referenced any more (so unlinking is safe) since the
+-		 * TTL was reset to 0.
++		 * TTL will be reset to 0.
+ 		 */
+ 		ISC_LIST_UNLINK(rbtdb->rdatasets[locknum], header, link);
+ 		size_t header_size = rdataset_size(header);
+-- 
+GitLab
+
