@@ -62,7 +62,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind9.16
 License:  MPLv2.0
 Version:  9.16.23
-Release:  0.22%{?dist}.16
+Release:  0.22%{?dist}.21
 Epoch:    32
 Url:      https://www.isc.org/downloads/bind/
 #
@@ -216,6 +216,17 @@ Patch245: bind-9.16-CVE-2026-19667.patch
 Patch246: bind-9.16-CVE-2026-19667-test.patch
 # https://gitlab.isc.org/isc-projects/bind9/-/commit/742dc803a85e7a7b9949010db550351275831aa6
 Patch247: bind-9.16-no-header-prev-in-expire-lru-headers.patch
+# https://gitlab.isc.org/isc-projects/bind9/-/commit/216f81c29a426eaf4469df63f90cf12a43f702f6
+Patch248: bind-9.16-CVE-2026-19662.patch
+Patch249: bind-9.16-CVE-2026-19662-test.patch
+# https://github.com/isc-projects/bind9/commit/d3cd0a1387bb1e15016e091443a4151f5a4375de
+Patch250: bind-9.16-CVE-2026-19630.patch
+# https://gitlab.isc.org/isc-projects/bind9/-/commit/0ecf627be4cb31b5d050f22e4f9b100aadc54eea
+Patch251: bind-9.16-CVE-2026-96888.patch
+# https://github.com/isc-projects/bind9/commit/68237737251544a2009cf14e14c57bb70d339ad2
+Patch252: bind-9.16-CVE-2026-97313.patch
+# https://github.com/isc-projects/bind9/commit/dcb8b7cbc7aaa9ae52a202fc96a5fdeff441ca21
+Patch253: bind-9.16-CVE-2026-94300.patch
 
 %{?systemd_ordering}
 Requires:       coreutils
@@ -573,6 +584,12 @@ in HTML and PDF format.
 %patch -P 245 -p1 -b .CVE-2026-19667
 %patch -P 246 -p1 -b .CVE-2026-19667-test
 %patch -P 247 -p1 -b .no-header-prev
+%patch -P 248 -p1 -b .CVE-2026-19662
+%patch -P 249 -p1 -b .CVE-2026-19662-test
+%patch -P 250 -p1 -b .CVE-2026-19630
+%patch -P 251 -p1 -b .CVE-2026-96888
+%patch -P 252 -p1 -b .CVE-2026-97313
+%patch -P 253 -p1 -b .CVE-2026-94300
 
 %if %{with PKCS11}
 %patch135 -p1 -b .config-pkcs11
@@ -1324,6 +1341,25 @@ fi;
 %endif
 
 %changelog
+* Wed Oct 21 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.21
+- CVE-2026-94300 bind9.16: bind: Arbitrary code execution via
+  GSS-TSIG UDP message replay
+
+* Wed Oct 21 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.20
+- CVE-2026-97313 bind9.16: bind: Denial of service via assertion
+  failure in RPZ query processing
+
+* Wed Oct 21 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.19
+- CVE-2026-96888 bind9.16: bind: Denial of Service via assertion failure
+  during redirect processing
+
+* Wed Oct 21 2026 RHEL Packaging Agent <redhat-ymir-agent@redhat.com> - 32:9.16.23-0.22.18
+- CVE-2026-19630 bind9.16: BIND: Denial of Service via unbounded processing of crafted DNS messages
+  processing of crafted DNS messages
+
+* Fri Oct 16 2026 Fedor Vorobev <fvorobev@redhat.com> - 32:9.16.23-0.22.17
+- Fix CVE-2026-19662: NOQNAME proof use-after-free could crash recursive resolver.
+
 * Tue Oct 06 2026 Fedor Vorobev <fvorobev@redhat.com> - 32:9.16.23-0.22-16
 - Backport 'Do not use header_prev in expire_lru_headers' from upstream.
 
